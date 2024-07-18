@@ -1,0 +1,21 @@
+{   
+    "n_var" : 1,
+    "n_riv" : 19,
+    "var_train_path": "./data/surface/chl_train_dataset.pt",
+    "var_test_path": "./data/surface/chl_train_dataset.pt",
+    "river_train_path": "./data/rivers/rivers_train.pt",
+    "river_test_path": "./data/rivers/rivers_test.pt",
+    "seed" : 0,
+    "training" : {
+        "loss" : "mse",
+        "lr" : 1e-3,
+        "max_epochs" : 500,
+        "patience": 10,
+        "batch_size" : 4
+    },
+    "data_dim" : {
+        "height" : 300,
+        "width" : 494,
+        "depth" : 27
+    }
+}

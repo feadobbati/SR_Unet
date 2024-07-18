@@ -9,7 +9,6 @@ import json
 import os
 from functools import reduce
 
-sys.path.insert(0, "./..")
 from utils.data_module import ICDataModule
 from models.convolutional.conv_model import ConvModel
 
@@ -107,9 +106,9 @@ if __name__== "__main__":
             if output_path != None: raise ValueError("Repeated input for output path")
             output_path = sys.argv[i+1]
             i += 2
-        elif sys.argv[i] == "-tep":  #maybe removed if we keep test file separated!
-            test_path = sys.argv[i+1]
-            i += 2
+        #elif sys.argv[i] == "-tep":  #maybe removed if we keep test file separated!
+        #    test_path = sys.argv[i+1]
+        #    i += 2
         elif sys.argv[i] == "-trp":
             train_path = sys.argv[i+1]
             i += 2
@@ -136,8 +135,8 @@ if __name__== "__main__":
 
     if train_path == None:
         train_path = conf.var_train_path
-    if test_path == None:
-        test_path = conf.var_test_path
+    #if test_path == None:
+    #    test_path = conf.var_test_path
     if not loss:
         loss = conf.training.loss
 
@@ -145,7 +144,7 @@ if __name__== "__main__":
             train_path = train_path, 
             test_path = test_path, 
             river_train_path = conf.river_train_path if riv else None, 
-            river_test_path = conf.river_test_path if riv else None, 
+            #river_test_path = conf.river_test_path if riv else None, 
             batch_size = conf.training.batch_size
     )
 
