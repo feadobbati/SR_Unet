@@ -1,4 +1,4 @@
-{   
+{
     "n_var" : 1,
     "n_riv" : 19,
     "var_train_path": "./data/surface/chl_train_dataset.pt",

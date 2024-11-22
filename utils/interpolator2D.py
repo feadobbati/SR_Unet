@@ -38,22 +38,22 @@ def ncOpener(DS):
     lon = DS['longitude'][:]
     lat = DS['latitude'][:]
     return lon, lat
-        
+
 
 def points_n_values(DS, zl, namevar, npnts):
-    '''Pre-processing for the interpolation: 
-    gives input and output grids, makes mask and finds non-land 
+    '''Pre-processing for the interpolation:
+    gives input and output grids, makes mask and finds non-land
     points and corresponding values
     '''
     var0 = DS[namevar][zl, :, :]
     X0, Y0 = outGrid(DS)
-	
+
     mask0 = ~ma.getmask(var0)
     pnts = np.empty((npnts, 2))
     pnts[:, 1] = X0[mask0].flatten()
     pnts[:, 0] = Y0[mask0].flatten()
     vals = var0[mask0]
-	
+
     return pnts, vals
 
 def check_water_presence(DS, zl, namevar):
@@ -67,15 +67,15 @@ def mask_interp(DS0, DS1, zl, namevar0):
     '''Function to interpolate the CMS mask on the OGS grid'''
     var0 = DS0[namevar0][zl, :, :]
     X0, Y0 = outGrid(DS0)
-	
+
     X1, Y1 = outGrid(DS1)
-	
+
     maskL = ma.getmask(var0)
     npnts = maskL.shape[0] * maskL.shape[1]
     pnts = np.empty((npnts, 2))
     pnts[:, 1] = X0.flatten()
     pnts[:, 0] = Y0.flatten()
-	
+
     maskOut = intrp.griddata(pnts, maskL.flatten(), (Y1, X1), method = 'nearest', fill_value = np.nan)
     return maskOut
 
@@ -86,13 +86,13 @@ def outGrid(DS):
 
 def interpolator(DS0, DS1, zl, namevar0, npnts):
     #to understand vout
-	'''Function to interpolate horizontally; 
-    nearest neighbours method (copies values from big to small grid) 
+	'''Function to interpolate horizontally;
+    nearest neighbours method (copies values from big to small grid)
     and then covers land with output mask
     '''
 	points, values = points_n_values(DS0, zl, namevar0, npnts)
 	X, Y = outGrid(DS1)
-	vout = ma.array(intrp.griddata(points, values, (Y, X), method = 'nearest', 
+	vout = ma.array(intrp.griddata(points, values, (Y, X), method = 'nearest',
     fill_value = np.nan), mask = mask_interp(DS0, DS1, zl, namevar0)) # mask during vert. interpol.
 	return vout
 
@@ -100,7 +100,7 @@ def vert_interpolation(DS0, DS1, namevar0):
     """Function producing horizontal interpolation"""
     lon0, lat0 = ncOpener(DS0)
     lon1, lat1 = ncOpener(DS1)
-    
+
     dep0 = DS0['depth'][:]
     dep1 = DS1['depth'][:]
 #
@@ -110,19 +110,19 @@ def vert_interpolation(DS0, DS1, namevar0):
         if npnts != 0:
             vint[iz, :, :] = interpolator(DS0, DS1, iz, namevar0, npnts)
     maskL = ma.concatenate(
-    [mask_interp(DS0, DS1, iz, namevar0) for iz in range(vint.shape[0])], 
+    [mask_interp(DS0, DS1, iz, namevar0) for iz in range(vint.shape[0])],
     axis = 0
     )
     vint = ma.array(vint, mask = maskL)
     return vint
-    
+
 def interpolate(DS0, DS1, namevar0):
-    """Function interpolating the values related to the variable namevar0 
+    """Function interpolating the values related to the variable namevar0
     in DS0 on the grid in DS1"""
-    vint = vert_interpolation(DS0, DS1, namevar0)   
+    vint = vert_interpolation(DS0, DS1, namevar0)
     dep0 = DS0['depth'][:]
     dep1 = DS1['depth'][:]
-   
+
     # interpolate vertically
     vfin = ma.empty_like(vint) * np.nan # define output 3D
 
@@ -150,7 +150,7 @@ def plot_masks(DS0, DS1, zl, namevar0):
     axs[1].set_aspect(2**0.5)
     plt.show()
     return
-    
+
 def plot_interpolated_grids(DS0, DS1, zl, namevar0):
     coasts = np.loadtxt('new_Adriatic_coastline.txt')
     lon0, lat0 = ncOpener(DS0)
@@ -183,7 +183,7 @@ def plot_interpolated_grids(DS0, DS1, zl, namevar0):
     fig.set_size_inches((20,11), forward = True)
     plt.show()
     return
-    
+
 def plot_vertical_profile(DS0, DS1, zl, namevar0):
     lon0, lat0 = ncOpener(DS0)
     lon1, lat1 = ncOpener(DS1)
@@ -225,15 +225,13 @@ def plot_vertical_profile(DS0, DS1, zl, namevar0):
     for iz in range(len(dep1)):
         print(f'\t{dep0[iz]:.2f} m\t||\t{dep1[iz]:.2f} m')
     return
-    
+
 def profiler(lats, lons, lat1, lon1, var):
 	idx0, idx1 = locator(lats, lat1), locator(lons, lon1)
 	return var[:, idx0, idx1]
-    
+
 def plot_all(DS0, DS1, zl, namevar0):
     plot_masks(DS0, DS1, zl, namevar0)
     plot_interpolated_grids(DS0, DS1, zl, namevar0)
     plot_vertical_profile(DS0, DS1, zl, namevar0)
     return
-    
- 

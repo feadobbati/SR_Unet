@@ -31,12 +31,12 @@ def masked_rmse(pred, gt, mask, stat=None):
 class WeightedRMSELoss(nn.Module):
     '''
     This loss function takes as input a certain mask, e.g., the average of a certain variable over time for each pixel
-    and weights more errors on values which are at a high distance from the mask. Here, data are normalized, hence the 
+    and weights more errors on values which are at a high distance from the mask. Here, data are normalized, hence the
     average will be approximately a tensor of zeros.
     '''
     def __init__(self):
         super(WeightedRMSELoss, self).__init__()
-        
+
     def forward(self, predicted, target, mask):
         masked_pred = predicted[~mask]
         masked_y = target[~mask]
@@ -47,7 +47,7 @@ class WeightedRMSELoss(nn.Module):
         # Weighted mean squared error
         loss = torch.mean(squared_error * weighted_distances)
         return loss
-    
+
 def _3d_vgg_channel_loss(idx, input, target, blocks, resize, transform, feature_layers=[0, 1, 2, 3], style_layers=[]):
         section_losses = []
         channel = input[:, idx:idx+1, :, :, :]
@@ -77,7 +77,7 @@ def _3d_vgg_channel_loss(idx, input, target, blocks, resize, transform, feature_
             section_losses.append(loss)
         losses_tensor = torch.stack(section_losses)
         return torch.mean(losses_tensor)
-    
+
 def _2d_vgg_channel_loss(idx, input, target, blocks, resize, transform, feature_layers=[0, 1, 2, 3], style_layers=[]):
     channel = input[:, idx:idx+1, :, :]
     channel_target = target[:, idx:idx+1, :, :]
@@ -144,7 +144,7 @@ class Masked_MSELoss(nn.Module):
         masked_y = gt[~mask]
         mse = nn.MSELoss()(masked_pred, masked_y)
         return mse
-    
+
 class Masked_RMSELoss(nn.Module):
     def __init__(self):
         super(Masked_RMSELoss, self).__init__()
@@ -155,4 +155,3 @@ class Masked_RMSELoss(nn.Module):
         mse = nn.MSELoss()(masked_pred, masked_y)
         rmse = torch.sqrt(mse)
         return rmse
-    

@@ -11,11 +11,15 @@ import json
 
 def get_xy_single_var(data_path:str, cms2ogs_map:Dict[str, str], cms_name: str, is_test:bool, is_surface:bool):
     '''
-        Returns the input and target values corresponding to a given variable in the data folder.   
-    
+        Returns the input and target values corresponding to a given variable in the data folder.
+
         Args:
-            cms_name (str): variable name in the CMS notation.
-            cms_type (str): either raw or interpolated, according to the kind of dataset we want to build up.
+            data_path (str): path to the data directory, there must be a subfolder called 'original' if we want
+            3D data, 'surface' for 2D data
+            cms2ogs_map: dictionary associating Copernicus Marine names to CADEAU names
+            cms_name (str): variable name in the Copernicus Marine notation.
+            is_test (bool): True if we are considering test dataset, False otherwise
+            is_surface (bool): True if we want to consider only surface, False otherwise
         Returns:
             x_arr (numpy array): input of the DL model for the given variable
             y_arr (numpy array): target of the DL model for the given variable
@@ -34,20 +38,20 @@ def get_xy_single_var(data_path:str, cms2ogs_map:Dict[str, str], cms_name: str, 
 
     cms_filenames = sorted(os.listdir(cms_path))
     ogs_filenames = sorted(os.listdir(ogs_path))
-    
+
     ds_type = "test" if is_test else "train"
 
     with alive_bar(0, title=f"Processing CMS {ds_type} data for {cms_name}...") as bar:
         for filename in cms_filenames:
-            
+
             file_path = os.path.join(cms_path, filename)
             file_ds = nc.Dataset(file_path)
             x_list.append(file_ds[cms_name][:].data)
-            bar()            
+            bar()
 
     with alive_bar(0, title=f"Processing OGS {ds_type} data for {ogs_name}...") as bar:
         for filename in ogs_filenames:
-      
+
             file_path: str = os.path.join(ogs_path, filename)
             file_ds = nc.Dataset(file_path)
             y_list.append(file_ds[ogs_name][:].data)
@@ -56,9 +60,12 @@ def get_xy_single_var(data_path:str, cms2ogs_map:Dict[str, str], cms_name: str, 
 
 
 def get_river_vector(data_path:str, is_test:bool):
+    """data_path need to have inside a 'rivers' directory, with vector and vector_test
+    subdirectory including files with normalized vectors of river data flow-rates
+    """
     river_path = os.path.join(data_path, "rivers", "vector_test" if is_test else "vector")
     x_list = []
-    
+
     cms_filenames = sorted(os.listdir(river_path))
 
     ds_type = "test" if is_test else "train"
@@ -114,14 +121,19 @@ def normalize(ds:np.array, means:np.array, stds:np.array, mask:np.array):
                 normalized_ds[i, v, :, :, :] = np.ma.masked_invalid((ds[i, v, :, :, :] - means[v]) / stds[v]).filled(10e6)
     return normalized_ds.data
 
-    
-def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, str], is_surface:bool, stat:bool):
+
+def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, str], is_surface:bool = False, stat:bool = True):
     '''
-        Saves the Pytorch dataset corresponding to a given variable in the data folder.   
-    
+        Saves the Pytorch dataset corresponding to a set of given variables in the data folder.
+
         Args:
-            var_list (List[str]): list of variable names in the CMS notation.
-            cms_type (str): either raw or interpolated, according to the kind of dataset we want to build up.
+            data_path (str): inside the path must be a directory with data, inside directory 'original' if we consider
+            3D data, 'surface' otherwise. In addition, there may be 'statistics' directory, with mean and standard deviations
+            of the datasets.
+            var_list (List[str]): list of variable names in the Copernicus Marine notation.
+            cms2ogs_map: dictionary associating to Copernicus Marine names CADEAU names
+            is_surface (opt, bool): True if we want to consider 2D data, False if data are 3D. Default is 3D
+            is_surface (opt, bool): True (default) if we have already computed means and standard deviations for the variables, False if we need to do it
     '''
 
     cms_im_train = []
@@ -133,7 +145,7 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
     x_stds = []
     y_means = []
     y_stds = []
-    
+
     for var in var_list:
         varx_list, vary_list = get_xy_single_var(data_path, cms2ogs_map, var, False, is_surface)
         cms_im_train.append(varx_list)
@@ -149,8 +161,8 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
                         line_elements.append(np.float32(line))
             x_means.append(line_elements[0])
             x_stds.append(line_elements[1])
-            
-            
+
+
             with open(f'{data_path}/statistics/ogs/stat_ogs_{var}.txt', 'r') as file:
                 line_elements = []
                 for line in file:
@@ -158,13 +170,13 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
                         line_elements.append(np.float32(line))
             y_means.append(line_elements[0])
             y_stds.append(line_elements[1])
-           
-            
+
+
     x_means = np.array(x_means)
     x_stds = np.array(x_stds)
     y_means = np.array(y_means)
-    y_stds = np.array(y_stds)                    
-   
+    y_stds = np.array(y_stds)
+
     cms_im_train = list(zip(*cms_im_train))
     ogs_im_train = list(zip(*ogs_im_train))
     cms_im_test = list(zip(*cms_im_test))
@@ -174,12 +186,12 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
     y_train = np.array(ogs_im_train)
     x_test = np.array(cms_im_test)
     y_test = np.array(ogs_im_test)
-  
+
     mask = x_train[0] > 100000
 
     if not stat:
         x_full = np.concatenate((x_train, x_test), axis=0)
-        y_full = np.concatenate((y_train, y_test), axis=0)  
+        y_full = np.concatenate((y_train, y_test), axis=0)
         x_means, x_stds = get_mean_std(x_full, mask)
         y_means, y_stds = get_mean_std(y_full, mask)
 
@@ -195,9 +207,9 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
         name = ""
         for var in var_list:
             name = name + f"{var}_"
-    
+
     dest_path = os.path.join(data_path, "surface" if is_surface else "original")
-    
+
     train_save_path = os.path.join(dest_path, name + "train_dataset.pt")
     test_save_path =  os.path.join(dest_path, name + "test_dataset.pt")
     print("Saving the pytorch datasets...")
@@ -214,6 +226,7 @@ def help():
     print("python make_pt_ds.py -dp /data/NASea_data -v no3 po4")
     print("In addition you can add -stat if you previously computed avg and std")
     print("-r if you want to create river dataset, -s if you need only the surface")
+    sys.exit(0)
 
 
 if __name__== "__main__":
@@ -227,11 +240,11 @@ if __name__== "__main__":
         -stat (bool, optional): flag denoting the presence inside the data path of a
         directory with mean and variance of each variable, both for Copernicus and OGS
         dataset (cfr compute_avgstd.py)
-        
+
         -v (list): list of variables that we want to put inside THE SAME dataset file.
-        
+
         -r (bool, optional): to use for the construction of river dataset
-        
+
         -s (bool, optional): to use if want to compute dataset for surface only
 
     """
@@ -241,11 +254,11 @@ if __name__== "__main__":
     is_surface = False
     rivers = False
     read_stat = False
-    
+
     while i < len(sys.argv):
         if sys.argv[i] == "-dp":
             if data_path != None: raise ValueError("Repeated input for data path")
-            data_path = sys.argv[i+1]; i+= 2  
+            data_path = sys.argv[i+1]; i+= 2
         elif sys.argv[i] == "-stat": # To use if we saved means and stds on files
             if read_stat: raise ValueError("Repeated input for stat")
             else:
@@ -254,7 +267,7 @@ if __name__== "__main__":
         elif sys.argv[i] == "-v":
             if var_list != []: raise ValueError("Repeated input for variable")
             if sys.argv[i+1] == "all":
-                var_list = "all" 
+                var_list = "all"
                 i+= 2
             else:
                 while i < len(sys.argv)-1:
@@ -262,11 +275,11 @@ if __name__== "__main__":
                         var_list.append(sys.argv[i+1]) ; i+= 1
                     else:
                         break
-                i+= 1     
+                i+= 1
         elif sys.argv[i] == "-r":
             rivers = True; i+=1
         elif sys.argv[i] == "-h" or sys.argv[i] == "--help":
-            help() 
+            help()
             i+=1
         elif sys.argv[i] == "-s":
             is_surface = True; i+=1
@@ -275,10 +288,10 @@ if __name__== "__main__":
 
     if data_path is None:
         help()
+    if v == []:
+        help()
 
-    if data_path is None: raise TypeError("Missing value for data path")
-
-    map_path =  os.path.join(data_path, "cms2ogs.json") # dictionary that assign OGS name of variables to CMS names
+    map_path = os.path.join(data_path, "cms2ogs.json") # dictionary that assign CADEAU name of variables to CMS names
     with open(map_path, 'r') as f:
         cms2ogs_map = json.load(f)
     if var_list == "all":
@@ -290,4 +303,3 @@ if __name__== "__main__":
     if rivers:
         make_rivers_dataset(data_path)
     print(f"[make_dataset for variable {var_list}] Ending execution")
-

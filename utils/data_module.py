@@ -30,7 +30,7 @@ class ICDataset(Dataset):
     '''
     Data coming from this custom dataset are returned as:
     (raw_data, river_data, target_value)
-    
+
     '''
     def __init__(self, tensor_dataset, rivers_dataset=None, resize_to_even = False):
         self.ds = tensor_dataset
@@ -49,7 +49,7 @@ class ICDataset(Dataset):
             river_sample = self.rivers[idx]
             return x_sample, river_sample, y_sample
         return x_sample, y_sample
-        
+
 
 class ICDataModule(pl.LightningDataModule):
 
@@ -94,23 +94,23 @@ class ICDataModule(pl.LightningDataModule):
 
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_ds, 
-                                           batch_size=self.batch_size, 
-                                           num_workers=4, 
+        return torch.utils.data.DataLoader(self.train_ds,
+                                           batch_size=self.batch_size,
+                                           num_workers=4,
                                            pin_memory=True,
                                            shuffle = True
                                            )
 
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val_ds, 
-                                           batch_size=self.batch_size, 
-                                           num_workers=4, 
+        return torch.utils.data.DataLoader(self.val_ds,
+                                           batch_size=self.batch_size,
+                                           num_workers=4,
                                            pin_memory=True,
                                            shuffle = False)
 
     def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.test_ds, 
-                                           batch_size=1, 
-                                           num_workers=4, 
+        return torch.utils.data.DataLoader(self.test_ds,
+                                           batch_size=1,
+                                           num_workers=4,
                                            pin_memory=True,
                                            shuffle = False)

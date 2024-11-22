@@ -33,14 +33,14 @@ def train(data_module:ICDataModule, main_net:str, riv_net:bool, conf:obj, output
         loss = conf.training.loss
     if n_var == None:
         n_var = conf.n_var
-    
+
     model = ConvModel(
-                    main_net=main_net, 
-                    n_dimensions=len(vars(conf.data_dim)), 
-                    riv_net = riv_net, 
-                    loss = loss, 
-                    num_channels=n_var, 
-                    riv_in_dim = conf.n_riv, 
+                    main_net=main_net,
+                    n_dimensions=len(vars(conf.data_dim)),
+                    riv_net = riv_net,
+                    loss = loss,
+                    num_channels=n_var,
+                    riv_in_dim = conf.n_riv,
                     riv_out_dim = reduce(lambda x, y: x * y, vars(conf.data_dim).values()),
                     lr = conf.training.lr
             )
@@ -53,8 +53,8 @@ def train(data_module:ICDataModule, main_net:str, riv_net:bool, conf:obj, output
     tb_logger = loggers.TensorBoardLogger(save_dir="./")
 
     early_stop_callback = EarlyStopping(
-        monitor="val_loss", 
-        min_delta=0.00, 
+        monitor="val_loss",
+        min_delta=0.00,
         patience=conf.training.patience,
         verbose=False,
         mode="min")
@@ -80,7 +80,6 @@ if __name__== "__main__":
         -cp (str): complete path to the configuration file, giving the parameters
         to use for the learning (num of epochs, patience...)
         -op (str): output path to save weights of the network
-        -tep (str): path to the test dataset 
         -trp (str): path to the training dataset
         -loss (str): loss function, can be 'mse', 'rmse', 'perceptual'
         -net (str): can be 'srcnn', 'unet', 'unet_mcd'
@@ -96,8 +95,8 @@ if __name__== "__main__":
     train_path = None
     test_path = None
     n_var = None
-    
-    while i < len(sys.argv): 
+
+    while i < len(sys.argv):
         if sys.argv[i] == "-cp":
             if conf_path != None: raise ValueError("Repeated input for configuration path")
             conf_path = sys.argv[i+1]
@@ -106,9 +105,6 @@ if __name__== "__main__":
             if output_path != None: raise ValueError("Repeated input for output path")
             output_path = sys.argv[i+1]
             i += 2
-        #elif sys.argv[i] == "-tep":  #maybe removed if we keep test file separated!
-        #    test_path = sys.argv[i+1]
-        #    i += 2
         elif sys.argv[i] == "-trp":
             train_path = sys.argv[i+1]
             i += 2
@@ -141,10 +137,10 @@ if __name__== "__main__":
         loss = conf.training.loss
 
     data_module = ICDataModule(
-            train_path = train_path, 
-            test_path = test_path, 
-            river_train_path = conf.river_train_path if riv else None, 
-            #river_test_path = conf.river_test_path if riv else None, 
+            train_path = train_path,
+            test_path = test_path,
+            river_train_path = conf.river_train_path if riv else None,
+            #river_test_path = conf.river_test_path if riv else None,
             batch_size = conf.training.batch_size
     )
 

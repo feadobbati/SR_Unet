@@ -9,7 +9,7 @@ class UNet3D_MCD(nn.Module):
         super().__init__()
         # Encoder
         # In the encoder, convolutional layers with the Conv3d function are used to extract features from the input image.
-        # Each block in the encoder consists of two convolutional layers followed by a max-pooling layer, with the exception 
+        # Each block in the encoder consists of two convolutional layers followed by a max-pooling layer, with the exception
         # of the last block which does not include a max-pooling layer.
         # -------
         # input: 27 x 300 x 494
@@ -109,10 +109,10 @@ class RiverNet_MCD(nn.Module):
         self.input_size = input_size
         self.output_size = output_size
         self.num_layers = num_layers
-        self.initial_hidden_size = 30 
+        self.initial_hidden_size = 30
 
         # Calculate the size increase step
-        hidden_size_step = 10 
+        hidden_size_step = 10
 
         # Define the layers
         self.layers = nn.ModuleList()

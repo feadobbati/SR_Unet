@@ -7,7 +7,7 @@ from models.convolutional.networks import SRCNN2D, SRCNN3D, UNet2D, UNet3D, Rive
 
 class ConvModel(pl.LightningModule):
     '''
-        Loss function can be either rmse, mse, perceptual. 
+        Loss function can be either rmse, mse, perceptual.
         The number of channels must consider just the variables (i.e., not the river channel)
     '''
     def __init__(self, main_net, n_dimensions, riv_net = False, loss = 'rmse', num_channels=1, lr = 1e-3, stats = None):
@@ -17,7 +17,7 @@ class ConvModel(pl.LightningModule):
         input_channels = num_channels + 1 if riv_net else num_channels
 
         self.main_net = UNet3D_MCD(input_channels = input_channels, output_channels = num_channels)
-        
+
         if loss == 'mse':
             self.loss = Masked_MSELoss()
         elif loss == 'rmse':
@@ -28,7 +28,7 @@ class ConvModel(pl.LightningModule):
             raise ValueError('Invalid argument for the loss function')
 
         # MC Dropout added - to decide whether to keep
-        self.river_net = True if riv_net else None 
+        self.river_net = True if riv_net else None
         self.name = f"conv_model_{main_net}_{loss}"
         self.n_dimensions = n_dimensions
         self.lr = lr
@@ -37,7 +37,7 @@ class ConvModel(pl.LightningModule):
     def forward(self, x, riv=None, riv_mask=None):
         x = self.main_net(x, riv)
         return x
-    
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adadelta(self.parameters())
         return optimizer
@@ -60,11 +60,11 @@ class ConvModel(pl.LightningModule):
             pred = self.forward(x)
 
         loss = self.loss(pred, y, mask)
-        self.log('train_loss', loss) 
+        self.log('train_loss', loss)
         return loss
-    
+
     def validation_step(self, val_batch, batch_idx):
-        if self.river_net is not None:    
+        if self.river_net is not None:
             x, riv, y = val_batch
         else:
             x, y = val_batch
@@ -73,7 +73,7 @@ class ConvModel(pl.LightningModule):
         x[mask] = 0
 
         if self.river_net is not None:
-            riv_mask = mask[:, 0:1, :, :] #extract mask of shape (bs, 1, h, w)           
+            riv_mask = mask[:, 0:1, :, :] #extract mask of shape (bs, 1, h, w)
             pred = self.forward(x, riv, riv_mask)
         else:
             pred = self.forward(x)
@@ -83,10 +83,10 @@ class ConvModel(pl.LightningModule):
         self.log('val_loss', loss, sync_dist=True)
         self.log('val_psnr', psnr_score, sync_dist=True)
 
-    
+
     def test_step(self, test_batch, batch_idx):
 
-        if self.river_net is not None:    
+        if self.river_net is not None:
             x, riv, y = test_batch
         else:
             x, y = test_batch
@@ -99,13 +99,13 @@ class ConvModel(pl.LightningModule):
             pred = self.forward(x, riv, riv_mask)
         else:
             pred = self.forward(x)
-        
+
         loss = self.loss(pred, y, mask)
         psnr_score = masked_psnr(pred, y, mask)
         ssim_score = masked_ssim(pred, y, mask)
         if self.stats is not None:
             rmse_score = masked_rmse(pred, y, mask, self.stats)
             self.log('test_rmse', rmse_score, sync_dist=True)
-        self.log('test_loss', loss, sync_dist=True)   
+        self.log('test_loss', loss, sync_dist=True)
         self.log('test_psnr', psnr_score, sync_dist=True)
         self.log('test_ssim', ssim_score, sync_dist=True)
