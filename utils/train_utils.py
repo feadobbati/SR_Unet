@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 ##########################################
-# UTILITIES FROM THE ORIGINAL REPOSITORY #
+# UTILITIES FROM https://github.com/yjn870/srcnn-pytorch #
 ##########################################
 
 def convert_rgb_to_y(img):
@@ -69,8 +69,3 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
-
-
-#################
-# NEW UTILITIES #
-#################
