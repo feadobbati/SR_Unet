@@ -7,7 +7,7 @@ Our use case is to improve the resolution of the Northern Adriatic Sea.
 The input data are from the Copernicus Marine Service reanalysis and can be downloaded from their
 [website](https://data.marine.copernicus.eu/products?facets=areas%7EMediterranean+Sea)
 The target data are from the CADEAU reanalysis on the northern Adriatic Sea and can be downloaded
-[here](https://zenodo.org/records/14046956)
+[here](https://zenodo.org/records/14046956).
 
 The repository includes scripts for preprocessing, training, and evaluating the results.
 Each of these phases is described below.
@@ -45,3 +45,5 @@ At the end of its execution, the best weights found during the training are save
 
 
 ## Testing and analysing
+The analysis directory includes the scripts used to evaluate the results. They work on the products of the avescan scripts, in the [bit.sea](https://github.com/inogs/bit.sea) github repository (postproc subdirectory).
+Thanks to the avescan, we obtain mean, standard deviations, and other metrics for each subregion of the northern Adriatic sea, that we then use in our analysis.
