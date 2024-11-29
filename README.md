@@ -1,4 +1,5 @@
 # SR_Unet
+![Salinity map on the northern Adriatic Sea with different resolutions](pictures/3maps_so_Apr_2.png)
 U-net performing super-resolution of physical and biogeochemical 3D marine domains.
 Both the input and the ground truth on which the U-net is trained must be numerical
 model data, i.e. they are expected to be full in all their domains, with masked values
