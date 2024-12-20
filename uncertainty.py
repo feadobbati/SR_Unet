@@ -132,38 +132,8 @@ def run_network(data_module:ICDataModule, main_net:str, riv_net:bool, conf:obj, 
 
         save_distribution_plot(mean_x_map, f'distribution_plot_{file_names[i].split('.')[0]}.png')
 
-        #print("min std", std_im.min())
-        #print("max std", std_im.max())
-        #mean_im = np.mean(single_image, axis=0)
-        #print("min mean", mean_im.min())
-        #print("max mean", mean_im.max())
-        #unc_im = np.divide(std_im, mean_im, out=np.zeros_like(std_im), where=mean_im!=0)
-        #unc_im = std_im
-        #unc_gen.append(unc_im)
-    #unc_gen = np.array(unc_gen)
-    #mean_unc_gen = np.mean(unc_gen, axis=0)
-
-    #np.save("uncertainty_matrix.npy", mean_unc_gen)
-
     mask = mask_image.cpu().numpy()
     np.save("mask.npy", mask)
-
-    #print("shape", mean_unc_gen.shape)
-    #print("somma", sum(sum(sum(sum(mean_unc_gen)))))
-
-    # Calculating mean across multiple MCD forward passes
-    #mean = np.mean(dropout_predictions, axis=0) # shape (n_samples, n_classes)
-
-    # Calculating variance across multiple MCD forward passes
-    #variance = np.var(dropout_predictions, axis=0) # shape (n_samples, n_classes)
-
-    #epsilon = sys.float_info.min
-    # Calculating entropy across multiple MCD forward passes
-    #entropy = -np.sum(mean*np.log(mean + epsilon), axis=-1) # shape (n_samples,)
-
-    # Calculating mutual information across multiple MCD forward passes
-    #mutual_info = entropy - np.mean(np.sum(-dropout_predictions*np.log(dropout_predictions + epsilon),
-     #                                       axis=-1), axis=0) # shape (n_samples,)
 
 
 
