@@ -87,8 +87,7 @@ def interpolate_3d(values2interp: np.array, old_lon:np.array, old_lat:np.array, 
     new_dep, new_lon, new_lat = np.meshgrid(new_dep, new_lat, new_lon, indexing='ij')
 
     # Extract the data to be interpolated
-    new_data = new_grid[vargrid][:]
-    print("shape", new_data.shape)
+    new_data = new_grid[var_grid][:]
 
     # Apply mask if the data is masked (land points or invalid values)
     masked_data = np.ma.masked_invalid(values2interp)  # Mask invalid values (NaNs, etc.)
@@ -188,6 +187,7 @@ def interpolate_data(cms_name: str, input_path: str, output_path: str, grid_file
 
                             # Copy global attributes from the original file
                             dest_nc.setncatts(source_nc.__dict__)
+                        print(f"Created {new_file_path}")
                     else:
                         print(f"{new_file_path} have already been created")
                     bar()
@@ -201,10 +201,11 @@ if __name__ == "__main__":
     '''
         Interpolates the files present in the source directory (with Copernicus Marine files)
         to match the dimensions with those of the files in the target directory (with CADEAU files).
+        All the files referring to given variable are assumed to be in a directory named as the variable.
 
         Parameters:
-        -ip string with the input path
-        -op string with the output path
+        -ip string with the input path (excluded vairable specific dir)
+        -op string with the output path (excluded variable specific dir)
         -gp string with the path to a file with the target grid of interpolation
         -vgp string with the var in the gp file
         -v set of variables to interpolate
@@ -256,5 +257,5 @@ if __name__ == "__main__":
 
     for var in var_list:
         print(f"[interpolate_cms for variable '{var}'] Starting execution")
-        interpolate_data(var, os.path.join(input_path, var), os.path.join(output_path, var), grid_file_path, n_dim=3)
+        interpolate_data(var, os.path.join(input_path, var), os.path.join(output_path, var), grid_file_path, var_grid_path, n_dim=3)
         print(f"[interpolate_cms for variable '{var}'] Ending execution")
