@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import pytorch_lightning as pl
 from models.convolutional.losses import Masked_MSELoss, Masked_RMSELoss, VGGPerceptualLoss, masked_psnr, masked_ssim, masked_rmse
-from models.convolutional.networks import SRCNN2D, SRCNN3D, UNet2D, UNet3D, RiverNet, UNet3D_MCD, RiverNet_MCD
+from models.convolutional.networks import UNet3D_MCD, RiverNet_MCD
 
 
 class ConvModel(pl.LightningModule):
