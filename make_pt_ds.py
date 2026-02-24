@@ -127,8 +127,7 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
         Saves the Pytorch dataset corresponding to a set of given variables in the data folder.
 
         Args:
-            data_path (str): inside the path must be a directory with data, inside directory 'original' if we consider
-            3D data, 'surface' otherwise. In addition, there may be 'statistics' directory, with mean and standard deviations
+            data_path (str): inside the path must be a directory with 3D data. In addition, there may be 'statistics' directory, with mean and standard deviations
             of the datasets.
             var_list (List[str]): list of variable names in the Copernicus Marine notation.
             cms2ogs_map: dictionary associating to Copernicus Marine names CADEAU names
@@ -212,7 +211,7 @@ def make_var_dataset(data_path:str, var_list:List[str], cms2ogs_map:Dict[str, st
         for var in var_list:
             name = name + f"{var}_"
 
-    dest_path = data_path #os.path.join(data_path, "surface" if is_surface else "original")
+    dest_path = data_path
 
     if not test_only:
         train_save_path = os.path.join(dest_path, name + "train_dataset.pt")
@@ -233,7 +232,7 @@ def help():
     print("Example of usage:")
     print("python make_pt_ds.py -dp /data/NASea_data -v no3 po4")
     print("In addition you can add -stat if you previously computed avg and std")
-    print("-r if you want to create river dataset, -s if you need only the surface")
+    print("-r if you want to create river dataset")
     sys.exit(0)
 
 
@@ -241,9 +240,7 @@ if __name__== "__main__":
     """Script to construct the training and the test dataset
     (after that test and training data have already been divided).
     Inputs:
-        -dp (str): data path for training and test. Inside the directory there must be
-        directories original (if we want to process 3D data) and/ or surface (for the
-        processing of surface only data).
+        -dp (str): data path for training and test. 
 
         -stat (bool, optional): flag denoting the presence inside the data path of a
         directory with mean and variance of each variable, both for Copernicus and OGS
@@ -252,8 +249,6 @@ if __name__== "__main__":
         -v (list): list of variables that we want to put inside THE SAME dataset file.
 
         -r (bool, optional): to use for the construction of river dataset
-
-        -s (bool, optional): to use if want to compute dataset for surface only
 
     """
     i = 1
